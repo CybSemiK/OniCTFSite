@@ -37,10 +37,6 @@ $teamName = $currentSettings['team_name'] ?? 'Nom de votre équipe';
             <input type="color" id="theme_color" name="theme_color" value="<?= htmlspecialchars($themeColor); ?>" class="form-control">
         </div>
         <div class="form-group">
-            <label for="surprise">Activer le mode Surprise :</label>
-            <input type="checkbox" id="surprise" name="surprise" class="form-check-input">
-        </div>
-        <div class="form-group">
             <label for="team_name">Nom de l'équipe :</label>
             <input type="text" id="team_name" name="team_name" value="<?= htmlspecialchars($teamName); ?>" class="form-control">
         </div>
