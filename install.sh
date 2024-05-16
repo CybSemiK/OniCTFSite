@@ -22,8 +22,21 @@ install_if_not_exists apache2
 # Installer MySQL
 install_if_not_exists mysql-server
 
-# Sécuriser l'installation de MySQL
-sudo mysql_secure_installation
+# Sécuriser l'installation de MySQL automatiquement
+sudo mysql <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY 'rootpassword';
+EOF
+
+sudo mysql_secure_installation <<EOF
+
+y
+rootpassword
+rootpassword
+y
+y
+y
+y
+EOF
 
 # Installer PHP
 install_if_not_exists php
@@ -50,10 +63,10 @@ done
 STRUCTURE_FILE="SQL/structure.sql"
 
 # Créer la base de données et l'utilisateur
-sudo mysql -e "CREATE DATABASE ${DB_NAME};"
-sudo mysql -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-sudo mysql -e "FLUSH PRIVILEGES;"
+sudo mysql -u root -prootpassword -e "CREATE DATABASE ${DB_NAME};"
+sudo mysql -u root -prootpassword -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+sudo mysql -u root -prootpassword -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
+sudo mysql -u root -prootpassword -e "FLUSH PRIVILEGES;"
 
 # Importer la structure de la base de données
 if [ -f "${STRUCTURE_FILE}" ]; then
