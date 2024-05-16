@@ -1,0 +1,106 @@
+ceci est un rapport 
+
+Solution
+Finding the vulnerability
+This challenge demonstrates why it is important to use secure parameters for secret sharing schemes and to define polynomials in finite fields. Firstly, the problem with recovering the coefficients directly is that there are 31 unknowns but we are able to obtain only 19 relations with these variables. Let us redefine the polynomial 
+:
+Assuming the player is familiar with modular arithmetic, they can quickly observe that:
+Therefore, by reducing the 
+-th share modulo 
+ we get the first coefficient 
+ (i.e. our secret) reduced modulo 
+. That is because all the other terms are eliminated as they are multiples of 
+.
+A question might arise regarding how useful this is. There is a well known theorem known as the Chinese Remainder Theorem (CRT) that helps us to find a full solution given enough partial solutions. More specifically, given the following relations:
+and assuming that 
+ are all relatively prime, the Chinese Remainder Theorem can find a solution for 
+ modulo 
+.
+
+Note that this challenge can become significantly easier if the player is already aware of the well known secret sharing scheme known as Mignotte Secret Sharing scheme (MSS).
+
+Since we are limited to send at most 15-bit IDs, we would need at least 
+ 
+ shares in order to recover the entire 256-bit secret which we are able to do since the upper limit is 19. More specifically, with 18 requests we can recover 15*18 = 270 bits of the key.
+
+Exploitation
+Let us adjust the Chinese Remainder Theorem to our challenge data. The idea is to send 18 distinct 
+ as IDs and reduce the share modulo 
+. Then we obtain 
+. Repeating this we obtain several equations for the key 
+:
+This is exactly in the form of the Chinese Remainder Theorem so we can apply it to recover the full key 
+. To avoid the 
+ having common factors, we can define them to be prime numbers.
+
+Let us write a function that randomly selects 18 15-bit primes, sends them to the server as the user ID and receives the corresponding share.
+
+from Crypto.Util.number import getPrime
+
+def obtain_shares():
+    X = [getPrime(15) for _ in range(n)]
+    RK = [] # reduced keys
+    
+    for x in X:
+        payload = json.dumps({'command': 'get_share', 'x': x})
+        io.sendlineafter(b'query = ', payload.encode())
+        share = json.loads(io.recvline().strip())['y']
+        RK.append(share % x)
+    
+    return X, RK
+
+d = 30
+n = 19
+Having obtained the shares, we can use Sympy's implementation of the CRT and solve for the key.
+
+from sympy.ntheory.modular import crt
+
+def solve_crt(X, rk):
+    return int(crt(X, rk)[0])
+Finally, we can hash the key as seen in the challenge source, request the encrypted flag and decrypt it.
+
+from hashlib import sha256
+
+def calculate_decryption_key(key):
+    return sha256(str(key).encode()).digest()
+
+def request_encrypted_flag():
+    payload = json.dumps({'command': 'encrypt_flag'})
+    io.sendlineafter(b'query = ', payload.encode())
+    io.recvuntil(b'flag : ')
+
+    data = json.loads(io.recvuntil(b'}').strip())
+    iv = bytes.fromhex(data['iv'])
+    encflag = bytes.fromhex(data['enc_flag'])
+    return iv, encflag
+
+from Crypto.Util.Padding import unpad
+from Crypto.Cipher import AES
+
+def decrypt_flag(key, iv, enc_flag):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return unpad(cipher.decrypt(encflag), 16).decode()
+Getting the flag
+A final summary of all that was said above:
+
+Notice that the degree of the polynomial 
+ is greater than the number of shares we are allowed to obtain 
+.
+Write down how 
+ are substituted in the polynomial 
+ and take advantage of the modular arithmetic properties to get the key 
+ reduced modulo different relatively prime moduli.
+Having obtained enough modular congruences, apply the CRT to find the whole key.
+Recalculate the decryption key
+Request the encrypted flag and decrypt it.
+These steps can be represented by code with the pwn() function:
+
+def pwn():
+    X, RK = obtain_shares()
+    key = solve_crt(X, RK)
+    aes_key = calculate_decryption_key(key)
+    iv, enc_flag = request_encrypted_flag()
+    flag = decrypt_flag(key, iv, enc_flag)
+    print(flag)
+
+pwn()
