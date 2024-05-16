@@ -22,16 +22,25 @@ install_if_not_exists apache2
 # Installer MySQL
 install_if_not_exists mysql-server
 
-# Sécuriser l'installation de MySQL automatiquement
-sudo mysql <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY 'rootpassword';
-EOF
+# Demander à l'utilisateur le mot de passe root pour MySQL
+while true; do
+    read -s -p "Entrez le mot de passe root pour MySQL : " MYSQL_ROOT_PASSWORD
+    echo
+    read -s -p "Confirmez le mot de passe root pour MySQL : " MYSQL_ROOT_PASSWORD_CONFIRM
+    echo
+    [ "$MYSQL_ROOT_PASSWORD" = "$MYSQL_ROOT_PASSWORD_CONFIRM" ] && break
+    echo "Les mots de passe ne correspondent pas. Veuillez réessayer."
+done
 
+# Configurer MySQL pour utiliser l'authentification par mot de passe pour l'utilisateur root
+sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
+
+# Sécuriser l'installation de MySQL automatiquement
 sudo mysql_secure_installation <<EOF
 
 y
-rootpassword
-rootpassword
+${MYSQL_ROOT_PASSWORD}
+${MYSQL_ROOT_PASSWORD}
 y
 y
 y
