@@ -47,7 +47,7 @@ while true; do
     echo "Les mots de passe ne correspondent pas. Veuillez réessayer."
 done
 
-STRUCTURE_FILE="structure.sql"
+STRUCTURE_FILE="SQL/structure.sql"
 
 # Créer la base de données et l'utilisateur
 sudo mysql -e "CREATE DATABASE ${DB_NAME};"
