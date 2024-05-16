@@ -112,6 +112,12 @@ sudo mkdir -p "${SITE_DIR}"
 # Copier les fichiers PHP dans le répertoire du site
 sudo cp -r php/* "${SITE_DIR}/"
 
+# Créer le répertoire nécessaire aux uploads et les droits associés
+sudo mkdir "${SITE_DIR}/"uploads/
+sudo mkdir "${SITE_DIR}/"uploads/writeups
+sudo chown -R www-data:www-data "${SITE_DIR}/"uploads/
+sudo chmod -R 766 "${SITE_DIR}/"uploads/
+
 # Mettre à jour le fichier db.php avec les informations de l'utilisateur
 DB_PHP_FILE="${SITE_DIR}/db.php"
 
