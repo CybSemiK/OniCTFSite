@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                timerElement.innerHTML = `${hours}h ${minutes}m ${seconds}s`;
+                const everything = "`${hours}h ${minutes}m ${seconds}s`"
+                timerElement.innerHTML = everything;
             }, 1000);
         }
     });
