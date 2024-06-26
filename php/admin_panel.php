@@ -171,10 +171,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             unlink($file['fichier']); // Supprime le fichier du serveur
         }
     }
-    $conn->query("SET FOREIGN_KEY_CHECKS = 0");
-    $conn->query("DELETE FROM rapports WHERE challenge_id IN (SELECT id FROM challenges WHERE categorie_id IN (SELECT id FROM categories WHERE event_id = $eventIdToDelete))");
-    $conn->query("DELETE FROM challenges WHERE categorie_id IN (SELECT id FROM categories WHERE event_id = $eventIdToDelete)");
-    $conn->query("DELETE FROM categories WHERE event_id = $eventIdToDelete");
+    $stmt->close();
+        
+    $deleteStmt = $conn->prepare("DELETE FROM rapports WHERE challenge_id IN (SELECT id FROM challenges WHERE categorie_id IN (SELECT id FROM categories WHERE event_id = ?))");
+    $deleteStmt->bind_param("i", $eventIdToDelete);
+    $deleteStmt->execute();
+    $deleteStmt->close();
+
+    $deleteStmt = $conn->prepare("DELETE FROM challenges WHERE categorie_id IN (SELECT id FROM categories WHERE event_id = ?)");
+    $deleteStmt->bind_param("i", $eventIdToDelete);
+    $deleteStmt->execute();
+    $deleteStmt->close();
+
+    $deleteStmt = $conn->prepare("DELETE FROM categories WHERE event_id = ?");
+    $deleteStmt->bind_param("i", $eventIdToDelete);
+    $deleteStmt->execute();
+    $deleteStmt->close();
+
+    $conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
     // Suppression de l'événement
     $deleteEventSql = "DELETE FROM ctf_events WHERE id = ?";
