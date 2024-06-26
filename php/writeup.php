@@ -82,7 +82,7 @@ $themeColor = $settings['theme_color'] ?? '#007bff';
     </div>
     <div class="upload-form">
         <form action="upload_writeup.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="challenge_id" value="<?= $challengeId; ?>">
+            <input type="hidden" name="challenge_id" value="<?= htmlspecialchars($challengeId, ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-group">
                 <label for="writeup_file">Upload Write-up:</label>
                 <input type="file" id="writeup_file" name="writeup_file" class="form-control-file"><br>
@@ -97,7 +97,7 @@ $themeColor = $settings['theme_color'] ?? '#007bff';
                 <div class="writeup-actions">
                     <a href="<?= htmlspecialchars($writeup["writeup_path"]); ?>" download class="btn btn-primary">Télécharger</a>
                     <a href="view_writeup.php?writeup_id=<?= $writeup['id']; ?>" class="btn btn-primary">Voir</a>
-                    <a href="delete_writeup.php?writeup_id=<?= $writeup['id']; ?>&challenge_id=<?= $challengeId; ?>" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce write-up ? Cette action est irréversible.');">Supprimer</a>
+                    <a href="delete_writeup.php?writeup_id=<?= urlencode($writeup['id']); ?>&challenge_id=<?= urlencode($challengeId); ?>" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce write-up ? Cette action est irréversible.');">Supprimer</a>
                 </div>
             </div>
         <?php endforeach; ?>
