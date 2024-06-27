@@ -146,8 +146,22 @@ sudo bash -c "cat > ${APACHE_CONF}" <<EOL
     DocumentRoot ${SITE_DIR}
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
+
+   SSLEngine on
+   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+</VirtualHost>
+<VirtualHost *:443>
+   ServerName ${SITE_DOMAIN}
+   DocumentRoot ${SITE_DIR}
+
+   SSLEngine on
+   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
 </VirtualHost>
 EOL
+
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
 
 # Activer le nouveau site et désactiver le site par défaut
 sudo a2dissite 000-default.conf
@@ -166,9 +180,5 @@ if ! grep -q "${SITE_DOMAIN}" /etc/hosts; then
 else
     echo "${SITE_DOMAIN} existe déjà dans /etc/hosts"
 fi
-
-# Mettre à jour le fichier admin_panel.php avec les informations de l'utilisateur
-AP_PHP_FILE="${SITE_DIR}/db.php"
-sudo sed -i "s/'changemesite'/'${SITE_DIR}'/g" "${AP_PHP_FILE}"
 
 echo "Installation LAMP, configuration de la base de données, et déploiement du site terminés."
