@@ -167,7 +167,7 @@ sudo bash -c "cat > ${APACHE_CONF}" <<EOL
     ServerAdmin ${SITE_ADMIN_EMAIL}
     ServerName ${SITE_DOMAIN}
     ServerAlias ${SITE_DOMAIN}
-    Redirect permanent / https://${SITE_DOMAIN}/login.php
+    Redirect permanent / https://${SITE_DOMAIN}/
     DocumentRoot ${SITE_DIR}
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
@@ -196,12 +196,9 @@ HTACCESS_FILE="${SITE_DIR}/.htaccess"
 sudo bash -c "cat > ${HTACCESS_FILE}" <<EOL
 RewriteEngine On
 
-RewriteCond %{HTTPS} !=on
-RewriteRule ^/?(.*) https://${SITE_DOMAIN}/$1 [R=301,L]
-
-RewriteCond %{REQUEST_URI} !^/login.php$
-RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC] # Exclure les fichiers statiques
-RewriteRule ^.*$ /login.php [R=302,L]
+# Rediriger seulement la page d'accueil vers login.php
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^$ /login.php [R=302,L]
 EOL
 
 sudo chown www-data:www-data "${HTACCESS_FILE}"
