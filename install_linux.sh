@@ -166,22 +166,27 @@ sudo bash -c "cat > ${APACHE_CONF}" <<EOL
     ServerAdmin ${SITE_ADMIN_EMAIL}
     ServerName ${SITE_DOMAIN}
     ServerAlias ${SITE_DOMAIN}
-    RedirectMatch / https://${SITE_DOMAIN}/login.php
+    Redirect permanent / https://${SITE_DOMAIN}/login.php
     DocumentRoot ${SITE_DIR}
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    CustomLog \${APACHE_LOG_DIR}/access.log combined
-
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
-    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+
 <VirtualHost *:443>
+    ServerAdmin ${SITE_ADMIN_EMAIL}
     ServerName ${SITE_DOMAIN}
+    ServerAlias ${SITE_DOMAIN}
     DocumentRoot ${SITE_DIR}
 
     SSLEngine on
     SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
     SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+
+    <Directory ${SITE_DIR}>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
 </VirtualHost>
 EOL
 
