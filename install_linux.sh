@@ -137,27 +137,30 @@ sudo sed -i "s/'changemedb'/'${DB_NAME}'/g" "${DB_PHP_FILE}"
 # Configurer le fichier de configuration Apache
 APACHE_CONF="/etc/apache2/sites-available/${SITE_NAME}.conf"
 
+sudo a2enmod ssl
+sudo systemctl restart apache2
+
 sudo bash -c "cat > ${APACHE_CONF}" <<EOL
 <VirtualHost *:80>
     ServerAdmin ${SITE_ADMIN_EMAIL}
     ServerName ${SITE_DOMAIN}
     ServerAlias ${SITE_DOMAIN}
-    RedirectMatch ^/\$ /login.php
+    RedirectMatch / https://${SITE_DOMAIN}/login.php
     DocumentRoot ${SITE_DIR}
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 
-   SSLEngine on
-   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
-   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
 </VirtualHost>
 <VirtualHost *:443>
-   ServerName ${SITE_DOMAIN}
-   DocumentRoot ${SITE_DIR}
+    ServerName ${SITE_DOMAIN}
+    DocumentRoot ${SITE_DIR}
 
-   SSLEngine on
-   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
-   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
 </VirtualHost>
 EOL
 
