@@ -159,6 +159,7 @@ sudo sed -i "s/'changemedb'/'${DB_NAME}'/g" "${DB_PHP_FILE}"
 APACHE_CONF="/etc/apache2/sites-available/${SITE_NAME}.conf"
 
 sudo a2enmod ssl
+sudo a2enmod rewrite
 sudo systemctl restart apache2
 
 sudo bash -c "cat > ${APACHE_CONF}" <<EOL
@@ -189,6 +190,23 @@ sudo bash -c "cat > ${APACHE_CONF}" <<EOL
     </Directory>
 </VirtualHost>
 EOL
+
+# Créer et configurer le fichier .htaccess
+HTACCESS_FILE="${SITE_DIR}/.htaccess"
+sudo bash -c "cat > ${HTACCESS_FILE}" <<EOL
+RewriteEngine On
+
+RewriteCond %{HTTPS} !=on
+RewriteRule ^/?(.*) https://${SITE_DOMAIN}/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} !^/login.php$
+RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC] # Exclure les fichiers statiques
+RewriteRule ^.*$ /login.php [R=302,L]
+EOL
+
+sudo chown www-data:www-data "${HTACCESS_FILE}"
+sudo chmod 644 "${HTACCESS_FILE}"
+
 
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
 
