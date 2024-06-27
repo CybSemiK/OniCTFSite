@@ -16,6 +16,9 @@ install_if_not_exists() {
 sudo apt update
 sudo apt upgrade -y
 
+#installer expect
+install_if_not_exists expect
+
 # Installer Apache
 install_if_not_exists apache2
 
@@ -36,16 +39,34 @@ done
 sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH 'mysql_native_password' BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 
 # Sécuriser l'installation de MySQL automatiquement
-sudo mysql_secure_installation <<EOF
+SECURE_MYSQL=$(expect -c "
 
-y
-${MYSQL_ROOT_PASSWORD}
-${MYSQL_ROOT_PASSWORD}
-y
-y
-y
-y
-EOF
+set timeout 10
+spawn sudo mysql_secure_installation
+
+expect \"Enter current password for root (enter for none):\"
+send \"${MYSQL_ROOT_PASSWORD}\r\"
+
+expect \"Switch to unix_socket authentication\"
+send \"n\r\"
+
+expect \"Change the root password?\"
+send \"n\r\"
+
+expect \"Remove anonymous users?\"
+send \"y\r\"
+
+expect \"Disallow root login remotely?\"
+send \"y\r\"
+
+expect \"Remove test database and access to it?\"
+send \"y\r\"
+
+expect \"Reload privilege tables now?\"
+send \"y\r\"
+
+expect eof
+")
 
 # Installer PHP
 install_if_not_exists php
@@ -72,10 +93,10 @@ done
 STRUCTURE_FILE="SQL/structure.sql"
 
 # Créer la base de données et l'utilisateur
-sudo mysql -u root -prootpassword -e "CREATE DATABASE ${DB_NAME};"
-sudo mysql -u root -prootpassword -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-sudo mysql -u root -prootpassword -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-sudo mysql -u root -prootpassword -e "FLUSH PRIVILEGES;"
+sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE DATABASE ${DB_NAME};"
+sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
+sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "FLUSH PRIVILEGES;"
 
 # Importer la structure de la base de données
 if [ -f "${STRUCTURE_FILE}" ]; then
