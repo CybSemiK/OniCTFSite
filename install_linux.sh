@@ -167,4 +167,8 @@ else
     echo "${SITE_DOMAIN} existe déjà dans /etc/hosts"
 fi
 
+# Mettre à jour le fichier admin_panel.php avec les informations de l'utilisateur
+AP_PHP_FILE="${SITE_DIR}/db.php"
+sudo sed -i "s/'changemesite'/'${SITE_DIR}'/g" "${AP_PHP_FILE}"
+
 echo "Installation LAMP, configuration de la base de données, et déploiement du site terminés."
